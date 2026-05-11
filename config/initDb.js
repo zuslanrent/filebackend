@@ -1,0 +1,55 @@
+const { pool } = require('./db')
+
+async function initDb() {
+  await pool.query('CREATE EXTENSION IF NOT EXISTS "pgcrypto";')
+
+  // Users
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      uuid        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      username    VARCHAR(50) UNIQUE NOT NULL,
+      password    VARCHAR(255) NOT NULL,
+      created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `)
+
+  // Groups
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS groups (
+      uuid        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      group_name  VARCHAR(255) NOT NULL,
+      description TEXT,
+      created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `)
+
+  // Departments
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS departments (
+      uuid          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      name          VARCHAR(255) NOT NULL,
+      description   TEXT,
+      created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `)
+
+  // Regulations
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS regulations (
+      uuid          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      file_name     VARCHAR(255) NOT NULL,
+      group_name    VARCHAR(255),
+      division_name VARCHAR(255),
+      approved_date DATE,
+      decline_date  DATE,
+      status        VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+      file_size     BIGINT,
+      created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    );
+  `)
+
+  console.log('✅ All tables initialized.')
+}
+
+module.exports = { initDb }
