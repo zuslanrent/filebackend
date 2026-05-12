@@ -4,9 +4,9 @@ const { authMiddleware } = require('../middleware/auth')
 
 const router = express.Router()
 
-router.get('/',         getGroups)        // ← authMiddleware хасав
-router.get('/:uuid',    getGroupById)     // ← authMiddleware хасав
-router.post('/',        authMiddleware, createGroup)
+router.get('/',         getGroups)
+router.get('/:uuid',    getGroupById)
+router.post('/',        createGroup)        // ← authMiddleware хасав
 router.put('/:uuid',    authMiddleware, updateGroup)
 router.delete('/:uuid', authMiddleware, deleteGroup)
 
