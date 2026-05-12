@@ -4,13 +4,10 @@ const { authMiddleware } = require('../middleware/auth')
 
 const router = express.Router()
 
-// GET — token шаардахгүй (public)
-router.get('/',        getGroups)
-router.get('/:uuid',   getGroupById)
-
-// POST, PUT, DELETE — token шаардана
-router.post('/',       authMiddleware, createGroup)
-router.put('/:uuid',   authMiddleware, updateGroup)
-router.delete('/:uuid',authMiddleware, deleteGroup)
+router.get('/',         getGroups)        // ← authMiddleware хасав
+router.get('/:uuid',    getGroupById)     // ← authMiddleware хасав
+router.post('/',        authMiddleware, createGroup)
+router.put('/:uuid',    authMiddleware, updateGroup)
+router.delete('/:uuid', authMiddleware, deleteGroup)
 
 module.exports = router
