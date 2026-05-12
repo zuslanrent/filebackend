@@ -5,6 +5,7 @@ const userRoutes       = require('./routes/userRoutes')
 const groupRoutes      = require('./routes/groupRoutes')
 const departmentRoutes = require('./routes/departmentRoutes')
 const regulationRoutes = require('./routes/regulationRoutes')
+const auditRoutes = require('./routes/auditRoutes')
 
 const app = express()
 
@@ -31,5 +32,6 @@ app.use('/api/users',       userRoutes)
 app.use('/api/groups',      groupRoutes)
 app.use('/api/departments', departmentRoutes)
 app.use('/api/regulations', regulationRoutes)
+app.use('/api/audit-logs', auditRoutes)
 
 module.exports = app

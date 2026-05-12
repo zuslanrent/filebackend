@@ -7,23 +7,33 @@ const router = express.Router()
 
 router.get('/',        getRegulations)
 router.get('/:uuid',   getRegulationById)
-router.post('/',       createRegulation)        // ← authMiddleware хасав
+router.post('/',       createRegulation)
 router.put('/:uuid',   authMiddleware, updateRegulation)
 router.delete('/:uuid',authMiddleware, deleteRegulation)
 
-// File upload — authMiddleware хасав
 router.post('/upload', upload.single('file'), (req, res) => {
-  if (!req.file)
-    return res.status(400).json({ success: false, message: 'Файл байхгүй байна.' })
+  try {
+    if (!req.file)
+      return res.status(400).json({ success: false, message: 'Файл байхгүй байна.' })
 
-  res.json({
-    success: true,
-    data: {
-      url:       req.file.path,
-      file_name: req.file.originalname,
-      file_size: req.file.size,
-    },
-  })
+    res.json({
+      success: true,
+      data: {
+        url:       req.file.path,
+        file_name: req.file.originalname,
+        file_size: req.file.size,
+      },
+    })
+  } catch (error) {
+    console.error('Upload error:', error)
+    return res.status(500).json({ success: false, message: error.message })
+  }
+})
+
+// ← Энд нэмнэ
+router.use((err, req, res, next) => {
+  console.error('Multer/Cloudinary error:', err)
+  return res.status(500).json({ success: false, message: err.message || 'Upload failed' })
 })
 
 module.exports = router

@@ -49,6 +49,20 @@ async function initDb() {
     );
   `)
 
+  await pool.query(`
+  CREATE TABLE IF NOT EXISTS audit_logs (
+    uuid          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    file_id       VARCHAR(255),
+    file_name     VARCHAR(255),
+    user_id       VARCHAR(255),
+    user_name     VARCHAR(255),
+    user_department VARCHAR(255),
+    action        VARCHAR(50),
+    details       TEXT,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`)
+
   console.log('✅ All tables initialized.')
 }
 
