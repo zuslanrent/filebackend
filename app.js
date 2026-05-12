@@ -8,18 +8,21 @@ const regulationRoutes = require('./routes/regulationRoutes')
 
 const app = express()
 
-app.use(cors({
+const corsOptions = {
   origin: [
     'http://localhost:3000',
-    'https://fund-ecru.vercel.app', // /regulations хасав
+    'https://fund-ecru.vercel.app',
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-}))
+}
 
-app.options('*', cors())
+// Эхлээд OPTIONS
+app.options('*', cors(corsOptions))
 
+// Дараа нь cors middleware
+app.use(cors(corsOptions))
 app.use(express.json())
 
 app.get('/', (req, res) => res.send('Backend is running ✅'))
