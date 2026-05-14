@@ -1,11 +1,35 @@
 const { pool } = require('../config/db')
 
 // GET /api/regulations
+// /controllers/regulationController.js
 const getRegulations = async (req, res) => {
   try {
     const { status, group_name, division_name, search } = req.query
 
-    let query = 'SELECT * FROM regulations WHERE 1=1'
+    let query = `
+      SELECT 
+        uuid as id,
+        file_name as name,
+        file_name as "fileName",
+        CASE 
+          WHEN file_name ILIKE '%.pdf' THEN 'pdf'
+          WHEN file_name ILIKE '%.docx' OR file_name ILIKE '%.doc' THEN 'doc'
+          WHEN file_name ILIKE '%.xlsx' OR file_name ILIKE '%.xls' THEN 'xlsx'
+          WHEN file_name ILIKE '%.pptx' OR file_name ILIKE '%.ppt' THEN 'pptx'
+          WHEN file_name ILIKE '%.png' OR file_name ILIKE '%.jpg' OR file_name ILIKE '%.jpeg' THEN 'image'
+          ELSE 'file'
+        END as "fileType",
+        NULL as "fileUrl",
+        file_size as "fileSize",
+        group_name as category,
+        division_name as department,
+        status,
+        approved_date as "approvedDate",
+        ARRAY[division_name] as "downloadPermissions",
+        created_at as "createdAt"
+      FROM regulations 
+      WHERE 1=1
+    `
     const params = []
     let idx = 1
 
@@ -31,7 +55,12 @@ const getRegulations = async (req, res) => {
     const result = await pool.query(query, params)
     return res.status(200).json({ success: true, data: result.rows })
   } catch (error) {
-    return res.status(500).json({ success: false, message: 'Алдаа гарлаа.', error: error.message })
+    console.error('getRegulations error:', error)
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Алдаа гарлаа.', 
+      error: error.message 
+    })
   }
 }
 
