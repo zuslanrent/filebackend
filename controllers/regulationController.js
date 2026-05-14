@@ -62,7 +62,7 @@ const getRegulations = async (req, res) => {
 const getRegulationById = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM regulations WHERE uuid = $1",
+      "SELECT *, COALESCE(version, 1) as version FROM regulations WHERE uuid = $1",
       [req.params.uuid],
     );
     if (result.rowCount === 0)

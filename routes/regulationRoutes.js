@@ -19,42 +19,49 @@ router.delete("/:uuid", deleteRegulation);
 
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: "Файл байхгүй байна." });
-    }
+    if (!req.file) return res.status(400).json({ success: false, message: "Файл байхгүй байна." })
 
     const {
-      name, group_name, division_name,
-      description, approved_date, uploaded_by, uploaded_by_name,
+      name, group_name, division_name, description,
+      approved_date, uploaded_by, uploaded_by_name,
+      parent_uuid, // ← шинэ хувилбар бол parent файлын uuid
     } = req.body
 
-    // view_permissions, download_permissions — JSON array хэлбэрээр ирнэ
+    let version = 1
+
+    // Хэрэв parent байвал version нэмэх
+    if (parent_uuid) {
+      const parent = await pool.query(
+        'SELECT version FROM regulations WHERE uuid = $1',
+        [parent_uuid]
+      )
+      if (parent.rowCount > 0) {
+        version = (parent.rows[0].version || 1) + 1
+      }
+    }
+
     let view_permissions = []
     let download_permissions = []
-
     try {
       view_permissions     = JSON.parse(req.body.view_permissions || '[]')
       download_permissions = JSON.parse(req.body.download_permissions || '[]')
-    } catch {
-      view_permissions     = []
-      download_permissions = []
-    }
+    } catch { }
 
     const fileExtension = req.file.originalname.split('.').pop()?.toLowerCase() || 'file'
 
     const result = await pool.query(
       `INSERT INTO regulations 
-        (file_name, file_url, file_size, file_type, status, group_name, division_name, 
+        (file_name, file_url, file_size, file_type, status, group_name, division_name,
          description, approved_date, uploaded_by, uploaded_by_name,
-         view_permissions, download_permissions, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
+         view_permissions, download_permissions, version, parent_uuid, created_at)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,NOW())
        RETURNING *`,
       [
         name || req.file.originalname,
         req.file.path,
         req.file.size,
         fileExtension,
-        "active",
+        'active',
         group_name || null,
         division_name || null,
         description || null,
@@ -63,6 +70,8 @@ router.post("/upload", upload.single("file"), async (req, res) => {
         uploaded_by_name || null,
         view_permissions,
         download_permissions,
+        version,
+        parent_uuid || null,
       ]
     )
 
