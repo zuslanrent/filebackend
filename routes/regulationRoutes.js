@@ -7,55 +7,53 @@ const {
   deleteRegulation,
 } = require("../controllers/regulationController");
 const { upload } = require("../config/cloudinary");
-const { pool } = require("../config/db"); // ← pool-ийг импортлох
+const { pool } = require("../config/db");
 
 const router = express.Router();
 
-// Public routes (токен шаардлагагүй - бүгдэд нээлттэй)
 router.get("/", getRegulations);
 router.get("/:uuid", getRegulationById);
 router.post("/", createRegulation);
-router.put("/:uuid", updateRegulation); // ← authMiddleware-ийг хассан
-router.delete("/:uuid", deleteRegulation); // ← authMiddleware-ийг хассан
+router.put("/:uuid", updateRegulation);
+router.delete("/:uuid", deleteRegulation);
 
-// /routes/regulationRoutes.js - upload endpoint
-// /routes/regulationRoutes.js - upload endpoint
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
     if (!req.file) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Файл байхгүй байна." });
+      return res.status(400).json({ success: false, message: "Файл байхгүй байна." });
     }
 
-    // Metadata-г req.body-оос авах
     const {
-      name,
-      group_name,
-      division_name,
-      description,
-      approved_date,
-      uploaded_by,
-      uploaded_by_name,
-    } = req.body;
+      name, group_name, division_name,
+      description, approved_date, uploaded_by, uploaded_by_name,
+    } = req.body
+
+    // view_permissions, download_permissions — JSON array хэлбэрээр ирнэ
+    let view_permissions = []
+    let download_permissions = []
+
+    try {
+      view_permissions     = JSON.parse(req.body.view_permissions || '[]')
+      download_permissions = JSON.parse(req.body.download_permissions || '[]')
+    } catch {
+      view_permissions     = []
+      download_permissions = []
+    }
+
+    const fileExtension = req.file.originalname.split('.').pop()?.toLowerCase() || 'file'
 
     const result = await pool.query(
       `INSERT INTO regulations 
-        (file_name, file_url, file_size, status, group_name, division_name, 
-         description, approved_date, uploaded_by, uploaded_by_name, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
-       RETURNING 
-        uuid as id, 
-        file_name as name, 
-        file_url as "fileUrl", 
-        file_size as "fileSize",
-        group_name as category,
-        division_name as department,
-        status`,
+        (file_name, file_url, file_size, file_type, status, group_name, division_name, 
+         description, approved_date, uploaded_by, uploaded_by_name,
+         view_permissions, download_permissions, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW())
+       RETURNING *`,
       [
         name || req.file.originalname,
         req.file.path,
         req.file.size,
+        fileExtension,
         "active",
         group_name || null,
         division_name || null,
@@ -63,25 +61,21 @@ router.post("/upload", upload.single("file"), async (req, res) => {
         approved_date || null,
         uploaded_by || null,
         uploaded_by_name || null,
-      ],
-    );
+        view_permissions,
+        download_permissions,
+      ]
+    )
 
-    res.json({
-      success: true,
-      data: result.rows[0],
-    });
+    res.json({ success: true, data: result.rows[0] })
   } catch (error) {
-    console.error("Upload error:", error);
-    return res.status(500).json({ success: false, message: error.message });
+    console.error("Upload error:", error)
+    return res.status(500).json({ success: false, message: error.message })
   }
-});
+})
 
-// Error handler
 router.use((err, req, res, next) => {
   console.error("Multer/Cloudinary error:", err);
-  return res
-    .status(500)
-    .json({ success: false, message: err.message || "Upload failed" });
+  return res.status(500).json({ success: false, message: err.message || "Upload failed" });
 });
 
 module.exports = router;

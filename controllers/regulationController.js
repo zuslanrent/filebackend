@@ -10,27 +10,20 @@ const getRegulations = async (req, res) => {
         uuid as id,
         file_name as name,
         file_name as "fileName",
-        CASE 
-          WHEN file_name ILIKE '%.pdf'  THEN 'pdf'
-          WHEN file_name ILIKE '%.docx' OR file_name ILIKE '%.doc' THEN 'doc'
-          WHEN file_name ILIKE '%.xlsx' OR file_name ILIKE '%.xls' THEN 'xlsx'
-          WHEN file_name ILIKE '%.pptx' OR file_name ILIKE '%.ppt' THEN 'pptx'
-          WHEN file_name ILIKE '%.png'  OR file_name ILIKE '%.jpg' THEN 'image'
-          ELSE 'file'
-        END as "fileType",
+        COALESCE(file_type, LOWER(SPLIT_PART(file_name, '.', -1)), 'file') as "fileType",
         file_url as "fileUrl",
-        file_size as "fileSize",
+        file_size::bigint as "fileSize",
         group_name as category,
         division_name as department,
         status,
         approved_date as "approvedDate",
-        ARRAY[division_name] as "viewPermissions",
-        ARRAY[division_name] as "downloadPermissions",
+        COALESCE(download_permissions, ARRAY[]::text[]) as "downloadPermissions",
+        COALESCE(view_permissions, ARRAY[]::text[]) as "viewPermissions",
         uploaded_by as "uploadedBy",
         uploaded_by_name as "uploadedByName",
         description,
         created_at as "uploadedAt",
-        created_at as "updatedAt",
+        updated_at as "updatedAt",
         1 as version,
         '[]'::json as "previousVersions"
       FROM regulations 
