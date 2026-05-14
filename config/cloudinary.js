@@ -12,21 +12,11 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: (req, file) => {
-    const isPdf = file.mimetype === 'application/pdf'
     const isImage = file.mimetype.startsWith('image/')
-    const isDocument = file.mimetype.includes('word') || 
-                       file.mimetype.includes('excel') ||
-                       file.mimetype.includes('powerpoint')
-    
     return {
       folder: 'regulations',
+      resource_type: isImage ? 'image' : 'raw', // PDF → raw
       allowed_formats: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'png', 'jpeg'],
-      // PDF бол 'image' (хөтөч дээр харагдуулах), бусад бол 'raw'
-      resource_type: isPdf ? 'image' : (isImage ? 'image' : 'raw'),
-      // PDF-г inline харуулах (attachment биш)
-      flags: isPdf ? 'attachment' : undefined,
-      // PDF-г өндөр чанартай харуулах
-      transformation: isPdf ? [{ quality: 'auto', fetch_format: 'auto' }] : undefined,
     }
   },
 })
