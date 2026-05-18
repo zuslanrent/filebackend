@@ -4,7 +4,7 @@ const { pool } = require("../config/db");
 // /controllers/regulationController.js
 const getRegulations = async (req, res) => {
   try {
-    const { status, group_name, division_name, search } = req.query;
+    const { status, group_name, division_name, search } = req.query
     let query = `
       SELECT 
         uuid as id,
@@ -28,35 +28,21 @@ const getRegulations = async (req, res) => {
         '[]'::json as "previousVersions"
       FROM regulations 
       WHERE 1=1
-    `;
-    const params = [];
-    let idx = 1;
-    if (status) {
-      query += ` AND status = $${idx++}`;
-      params.push(status);
-    }
-    if (group_name) {
-      query += ` AND group_name ILIKE $${idx++}`;
-      params.push(`%${group_name}%`);
-    }
-    if (division_name) {
-      query += ` AND division_name ILIKE $${idx++}`;
-      params.push(`%${division_name}%`);
-    }
-    if (search) {
-      query += ` AND file_name ILIKE $${idx++}`;
-      params.push(`%${search}%`);
-    }
-    query += " ORDER BY created_at DESC";
-    const result = await pool.query(query, params);
-    return res.status(200).json({ success: true, data: result.rows });
+    `
+    const params = []
+    let idx = 1
+    if (status)        { query += ` AND status = $${idx++}`;            params.push(status) }
+    if (group_name)    { query += ` AND group_name ILIKE $${idx++}`;    params.push(`%${group_name}%`) }
+    if (division_name) { query += ` AND division_name ILIKE $${idx++}`; params.push(`%${division_name}%`) }
+    if (search)        { query += ` AND file_name ILIKE $${idx++}`;     params.push(`%${search}%`) }
+    query += ' ORDER BY created_at DESC'
+    const result = await pool.query(query, params)
+    return res.status(200).json({ success: true, data: result.rows })
   } catch (error) {
-    console.error("getRegulations error:", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Алдаа гарлаа.", error: error.message });
+    console.error('getRegulations error:', error)
+    return res.status(500).json({ success: false, message: 'Алдаа гарлаа.', error: error.message })
   }
-};
+}
 
 // GET /api/regulations/:uuid
 const getRegulationById = async (req, res) => {
