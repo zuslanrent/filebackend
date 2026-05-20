@@ -6,12 +6,15 @@ const groupRoutes      = require('./routes/groupRoutes')
 const departmentRoutes = require('./routes/departmentRoutes')
 const regulationRoutes = require('./routes/regulationRoutes')
 const auditRoutes = require('./routes/auditRoutes')
+const categoryRoutes = require('./routes/categoryRoutes')
 
 const app = express()
 
 const corsOptions = {
   origin: [
     'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002', // ← нэмэх
     'https://fund-ecru.vercel.app',
   ],
   credentials: true,
@@ -33,5 +36,6 @@ app.use('/api/groups',      groupRoutes)
 app.use('/api/departments', departmentRoutes)
 app.use('/api/regulations', regulationRoutes)
 app.use('/api/audit-logs', auditRoutes)
+app.use('/api/categories', categoryRoutes)
 
 module.exports = app
