@@ -7,6 +7,8 @@ const departmentRoutes = require('./routes/departmentRoutes')
 const regulationRoutes = require('./routes/regulationRoutes')
 const auditRoutes = require('./routes/auditRoutes')
 const categoryRoutes = require('./routes/categoryRoutes')
+const itSupportRoutes = require('./routes/itSupportRoutes')
+const errorRoutes = require('./routes/errorRoutes');
 
 const app = express()
 
@@ -37,5 +39,7 @@ app.use('/api/departments', departmentRoutes)
 app.use('/api/regulations', regulationRoutes)
 app.use('/api/audit-logs', auditRoutes)
 app.use('/api/categories', categoryRoutes)
+app.use('/api/itsupport', itSupportRoutes)
+app.use('/api/itsupport/errors', errorRoutes);
 
 module.exports = app

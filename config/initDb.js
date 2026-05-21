@@ -63,6 +63,41 @@ async function initDb() {
   );
 `)
 
+// IT Support tables
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS it_categories (
+    uuid        UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name        VARCHAR(255) NOT NULL,
+    description TEXT,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`)
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS it_subcategories (
+    uuid          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    category_uuid UUID NOT NULL REFERENCES it_categories(uuid) ON DELETE CASCADE,
+    name          VARCHAR(255) NOT NULL,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`)
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS it_errors (
+    uuid             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    keyword          VARCHAR(255) NOT NULL,
+    description      TEXT NOT NULL,
+    solution         TEXT,
+    category_uuid    UUID REFERENCES it_categories(uuid) ON DELETE SET NULL,
+    subcategory_uuid UUID REFERENCES it_subcategories(uuid) ON DELETE SET NULL,
+    department       VARCHAR(255),
+    status           VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+    images           TEXT[] DEFAULT '{}',
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+`)
+
   console.log('✅ All tables initialized.')
 }
 
