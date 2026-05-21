@@ -1,4 +1,25 @@
 const { pool } = require('../config/db')
+const axios = require('axios') // ← Гадаад API-руу хүсэлт явуулахад хэрэгтэй тул нэмэв
+
+// GET /api/departments/external (Боди Группийн API-г дамжуулан дуудах шинэ функц)
+const getExternalDepartments = async (req, res) => {
+  try {
+    const bodiUrl = 'http://intranet.bodigroup.mn/intranet/api/departments?api_key=int_api_7f766e223f04c1638db65580fcb356be2aeb3e79'
+    
+    // Сервер өөрөө Боди-гийн http хаяг руу хандаж өгөгдлийг татна (Mixed Content алдаа гарахгүй)
+    const response = await axios.get(bodiUrl)
+    
+    // Боди-гийн API-аас ирсэн датаг шууд буцаана
+    return res.status(200).json(response.data)
+  } catch (error) {
+    console.error('Боди API дуудахад алдаа гарлаа:', error.message)
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Боди Группийн системээс өгөгдөл татахад алдаа гарлаа.', 
+      error: error.message 
+    })
+  }
+}
 
 // GET /api/departments
 const getDepartments = async (req, res) => {
@@ -70,4 +91,11 @@ const deleteDepartment = async (req, res) => {
   }
 }
 
-module.exports = { getDepartments, getDepartmentById, createDepartment, updateDepartment, deleteDepartment }
+module.exports = { 
+  getDepartments, 
+  getDepartmentById, 
+  createDepartment, 
+  updateDepartment, 
+  deleteDepartment, 
+  getExternalDepartments // ← Одоо яг зөв экспортлогдож байна
+}
