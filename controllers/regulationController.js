@@ -10,7 +10,7 @@ const getRegulations = async (req, res) => {
         uuid as id,
         file_name as name,
         file_name as "fileName",
-        COALESCE(file_type, LOWER(SPLIT_PART(file_name, '.', -1)), 'file') as "fileType",
+        LOWER(SPLIT_PART(file_name, '.', -1)) as "fileType",
         file_url as "fileUrl",
         file_size::bigint as "fileSize",
         group_name as category,
