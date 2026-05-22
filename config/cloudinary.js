@@ -4,20 +4,27 @@ const multer = require('multer')
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key:    process.env.CLOUDINARY_API_KEY,
+  api_key:     process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-// Файлын төрлөөс хамааран resource_type-г динамик сонгох
 const storage = new CloudinaryStorage({
   cloudinary,
   params: (req, file) => {
     const isImage = file.mimetype.startsWith('image/')
-    return {
+    
+    const config = {
       folder: 'regulations',
-      resource_type: isImage ? 'image' : 'raw', // PDF → raw
-      allowed_formats: ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'png', 'jpeg'],
+      resource_type: isImage ? 'image' : 'raw', // PDF, Word зэрэг нь 'raw' болно
     }
+
+    // Зөвхөн зураг хуулж байвал форматын хязгаарлалтыг Cloudinary-д өгнө
+    if (isImage) {
+      config.allowed_formats = ['jpg', 'png', 'jpeg']
+    }
+    // PDF, DOC-д allowed_formats өгөхгүй, шууд түүхийгээр (raw) хуулна
+
+    return config
   },
 })
 
