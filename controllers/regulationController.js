@@ -11,7 +11,7 @@ const getRegulations = async (req, res) => {
         file_name as name,
         file_name as "fileName",
         LOWER(SPLIT_PART(file_name, '.', -1)) as "fileType",
-        '' as "fileUrl",  // <--- ЯГ ЭНД ИНГЭЖ ӨӨРЧЛӨӨРЭЙ (file_url-ийг устгаад хоосон текст болгов)
+        '' as "fileUrl",
         file_size::bigint as "fileSize",
         group_name as category,
         division_name as department,
