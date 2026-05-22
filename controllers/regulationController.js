@@ -4,67 +4,73 @@ const { pool } = require("../config/db");
 // /controllers/regulationController.js
 const getRegulations = async (req, res) => {
   try {
-    const { status, group_name, division_name, search } = req.query
+    const { status, group_name, division_name, search } = req.query;
     let query = `
-      SELECT 
-        uuid as id,
-        file_name as name,
-        file_name as "fileName",
-        LOWER(SPLIT_PART(file_name, '.', -1)) as "fileType",
-        '' as "fileUrl",
-        file_size::bigint as "fileSize",
-        group_name as category,
-        division_name as department,
-        status,
-        approved_date as "approvedDate",
-        COALESCE(download_permissions, ARRAY[]::text[]) as "downloadPermissions",
-        COALESCE(view_permissions, ARRAY[]::text[]) as "viewPermissions",
-        uploaded_by as "uploadedBy",
-        uploaded_by_name as "uploadedByName",
-        description,
-        created_at as "uploadedAt",
-        updated_at as "updatedAt",
-        1 as version,
-        '[]'::json as "previousVersions"
-      FROM regulations 
-      WHERE 1=1
-    `
-    const params = []
-    let idx = 1
-    
+  SELECT 
+    uuid as id,
+    file_name as name,
+    file_name as "fileName",
+    COALESCE(file_type, LOWER(SPLIT_PART(file_name, '.', -1)), 'file') as "fileType",
+    COALESCE(file_url, '') as "fileUrl",
+    COALESCE(file_size, 0)::bigint as "fileSize",
+    group_name as category,
+    division_name as department,
+    status,
+    approved_date as "approvedDate",
+    COALESCE(download_permissions, ARRAY[]::text[]) as "downloadPermissions",
+    COALESCE(view_permissions, ARRAY[]::text[]) as "viewPermissions",
+    COALESCE(uploaded_by, '') as "uploadedBy",
+    COALESCE(uploaded_by_name, '') as "uploadedByName",
+    COALESCE(description, '') as description,
+    created_at as "uploadedAt",
+    COALESCE(updated_at, created_at) as "updatedAt",
+    COALESCE(version, 1) as version,
+    '[]'::json as "previousVersions"
+  FROM regulations 
+  WHERE 1=1
+`;
+    const params = [];
+    let idx = 1;
+
     // 1. Төлөв шүүх (Хэрэв 'all' биш бол)
-    if (status && status !== 'all') { 
-      query += ` AND status = $${idx++}`; 
-      params.push(status) 
+    if (status && status !== "all") {
+      query += ` AND status = $${idx++}`;
+      params.push(status);
     }
-    
+
     // 2. Бүлэг шүүх (Хэрэв утга ирсэн бөгөөд 'all' биш бол)
-    if (group_name && group_name !== 'all' && group_name.trim() !== '') { 
-      query += ` AND group_name ILIKE $${idx++}`; 
-      params.push(`%${group_name}%`) 
+    if (group_name && group_name !== "all" && group_name.trim() !== "") {
+      query += ` AND group_name ILIKE $${idx++}`;
+      params.push(`%${group_name}%`);
     }
-    
+
     // 3. 🎯 Хэлтэс шүүх (Хэрэв утга ирсэн бөгөөд 'all' биш бол SQL-д нэмэхгүй алгасна)
-    if (division_name && division_name !== 'all' && division_name.trim() !== '') { 
-      query += ` AND division_name ILIKE $${idx++}`; 
-      params.push(`%${division_name}%`) 
+    if (
+      division_name &&
+      division_name !== "all" &&
+      division_name.trim() !== ""
+    ) {
+      query += ` AND division_name ILIKE $${idx++}`;
+      params.push(`%${division_name}%`);
     }
-    
+
     // 4. Нэрээр хайх
-    if (search && search.trim() !== '') { 
-      query += ` AND file_name ILIKE $${idx++}`; 
-      params.push(`%${search}%`) 
+    if (search && search.trim() !== "") {
+      query += ` AND file_name ILIKE $${idx++}`;
+      params.push(`%${search}%`);
     }
-    
-    query += ' ORDER BY created_at DESC'
-    
-    const result = await pool.query(query, params)
-    return res.status(200).json({ success: true, data: result.rows })
+
+    query += " ORDER BY created_at DESC";
+
+    const result = await pool.query(query, params);
+    return res.status(200).json({ success: true, data: result.rows });
   } catch (error) {
-    console.error('getRegulations error:', error)
-    return res.status(500).json({ success: false, message: 'Алдаа гарлаа.', error: error.message })
+    console.error("getRegulations error:", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Алдаа гарлаа.", error: error.message });
   }
-}
+};
 
 // GET /api/regulations/:uuid
 const getRegulationById = async (req, res) => {
